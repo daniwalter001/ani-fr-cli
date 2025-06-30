@@ -19,8 +19,11 @@ class BeautifulScraper:
         return soup
 
     def fetchAndParse(self, url="", extra_headers={}):
-        if not url:
-            return False
-        response = requests.get(url, headers=extra_headers)
+        try:
+            if not url:
+                return False
+            response = requests.get(url, headers=extra_headers, timeout=10)
 
-        return self.parse(response.text)
+            return self.parse(response.text)
+        except:
+            return False

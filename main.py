@@ -1,26 +1,38 @@
 from providers.hianime import HiAnime
+from util.fzf_handler import fuzzy_finder
+from util.functions import clear
+
 
 hianime = HiAnime()
 
-anime = "one piece"
+while True:
 
-search_results = hianime.search(anime)
+    choice = fuzzy_finder(["continue", "quit"], prompt="WDYW?")
 
-for idx, result in enumerate(search_results):
-    print(f"  {idx + 1}. {result['id']} - {result['title']}")
+    if choice == 1:
+        clear()
+        break
 
-choice = input("Select a number: ")
-choice = int(choice) - 1
+    anime = input("Anime: ")
 
-eps = hianime.fetch_eps(search_results[choice]["id"])
+    if not anime:
+        clear()
+        break
 
-for idx, ep in enumerate(eps):
-    print(f"  {idx + 1}. {ep['title']}")
+    search_results = hianime.search(anime)
 
-choice = input("Select a number: ")
-choice = int(choice) - 1
+    choice = fuzzy_finder([x["title"] for x in search_results], prompt="Select anime:")
 
-servers = hianime.fetch_servers(eps[choice]["id"])
+    eps = hianime.fetch_eps(search_results[choice]["id"])
 
-for idx, server in enumerate(servers):
-    print(f"  {idx + 1}. {server['title']} - {server['data']['link']}")
+    choice = fuzzy_finder(
+        [f"{x['order']}. {x['title']}" for x in eps], prompt="Select episode:"
+    )
+
+    servers = hianime.fetch_servers(eps[choice]["id"])
+
+    for idx, server in enumerate(servers):
+        print(f"  {idx + 1}. {server['title']} - {server['data']['link']}")
+
+
+clear()

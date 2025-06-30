@@ -1,6 +1,6 @@
 import urllib.parse
 import requests
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, Tag
 from parser.beautifulSoup import BeautifulScraper
 
 
@@ -15,19 +15,19 @@ class HiAnime:
 
     souper = BeautifulScraper()
 
-    def get_first_from_selects(self, soup: BeautifulSoup, selector: list[str]):
-
+    def get_first_from_selects(self, soup: BeautifulSoup | Tag, selector: list[str]):
+        empty_tag = Tag(name="a") if "a" in selector else Tag(name="span")
         try:
-            r = None
+            r = empty_tag
             for s in selector:
                 r = soup.select(s, limit=1)
                 if not r:
-                    return None
+                    return empty_tag
                 r = r[0]
 
             return r
         except:
-            return None
+            return empty_tag
 
     def search(self, query="", type=""):
         if not query:
@@ -37,6 +37,9 @@ class HiAnime:
         api = urllib.parse.urljoin(self.url, "search?keyword=" + parseQuery)
 
         soup = self.souper.fetchAndParse(api, self.headers)
+
+        if not soup:
+            return []
 
         search_results = self.extract_search_results(soup)
 
@@ -68,7 +71,7 @@ class HiAnime:
                     self.url,
                     self.get_first_from_selects(node, ["h3.film-name", "a"]).get(
                         "href"
-                    ),
+                    ),  # type: ignore
                 ),
                 "image": self.get_first_from_selects(node, ["div.film-poster img"]).get(
                     "data-src"
@@ -90,14 +93,14 @@ class HiAnime:
 
         return results
 
-    def fetch_eps(self, anime_id=""):
+    def fetch_eps(self, anime_id: str):
         if not anime_id:
             return []
 
         try:
             api = urllib.parse.urljoin(self.url, "/ajax/v2/episode/list/" + anime_id)
 
-            response = requests.get(api, headers=self.headers)
+            response = requests.get(api, headers=self.headers, timeout=10)
 
             if not response:
                 print("Error: Invalid response")
@@ -116,6 +119,8 @@ class HiAnime:
             html = response.json()["html"]
 
             soup = self.souper.parse(html)
+            if not soup:
+                return []
 
             eps = self.extract_eps(soup)
 
@@ -154,7 +159,7 @@ class HiAnime:
                 self.url, "/ajax/v2/episode/servers?episodeId=" + ep_id
             )
 
-            response = requests.get(api, headers=self.headers)
+            response = requests.get(api, headers=self.headers, timeout=10)
 
             if not response:
                 print("Error: Invalid response")
@@ -173,6 +178,9 @@ class HiAnime:
             html = response.json()["html"]
 
             soup = self.souper.parse(html)
+
+            if not soup:
+                return []
 
             servers = self.extract_servers(soup)
 
@@ -210,7 +218,7 @@ class HiAnime:
 
         api = urllib.parse.urljoin(self.url, "/ajax/v2/episode/sources?id=" + server_id)
 
-        response = requests.get(api, headers=self.headers)
+        response = requests.get(api, headers=self.headers, timeout=10)
 
         if not response:
             print("Error: Invalid response")
