@@ -7,6 +7,7 @@ def fuzzy_finder(
 ):
 
     selected = iterfzf(options, multi=False, prompt=prompt, ansi=True, cycle=True)
+
     if not selected:
         return False
 

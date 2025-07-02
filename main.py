@@ -1,9 +1,11 @@
 from providers.hianime import HiAnime
 from util.fzf_handler import fuzzy_finder
-from util.functions import clear, exit
+from util.functions import clear
+from providers.mal import MyAnimeList
 
 
 hianime = HiAnime()
+mal = MyAnimeList()
 
 
 while True:
@@ -22,29 +24,35 @@ while True:
             clear()
             break
 
-        search_results = hianime.search(anime)
+        search_results = mal.search(anime)
 
-        search_results.reverse()
+        if not search_results:
+            clear()
+            continue
 
         choice = fuzzy_finder(
             [x["title"] for x in search_results],
             prompt="Select anime:",
         )
 
-        if not choice:
+        if choice == False and choice != 0:
             clear()
             break
 
-        eps = hianime.fetch_eps(search_results[choice]["id"])
+        eps = hianime.fetch_eps(search_results[choice]["mal_id"])
 
-        eps.reverse()
+        # eps = mal.get_eps_by_id(search_results[choice]["mal_id"])
+
+        if not eps:
+            clear()
+            continue
 
         choice = fuzzy_finder(
-            [f"{x['order']}. {x['title']}" for x in eps],
+            [f"{x['mal_id']}. {x['title']}" for x in eps],
             prompt="Select episode:",
         )
 
-        if not choice:
+        if choice == False and choice != 0:
             clear()
             break
 
@@ -54,7 +62,7 @@ while True:
             print(f"  {idx + 1}. {server['title']} - {server['data']['link']}")
 
         input("")
-    except Exception as e:
+    except KeyboardInterrupt as e:
         clear()
         continue
 clear()

@@ -96,7 +96,9 @@ class HiAnime:
     def fetch_eps(self, anime_id: str):
         if not anime_id:
             return []
-
+        
+        print(anime_id)
+        input("Press enter to continue...")
         try:
             api = urllib.parse.urljoin(self.url, "/ajax/v2/episode/list/" + anime_id)
 
@@ -151,6 +153,7 @@ class HiAnime:
             return []
 
     def fetch_servers(self, ep_id=""):
+
         if not ep_id:
             return []
 

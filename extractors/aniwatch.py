@@ -32,8 +32,6 @@ class MegaCloud:
 
         json_response = response.json()
 
-        print(json_response)
-
         if not json_response or "sources" not in json_response:
             return False
 
@@ -42,7 +40,7 @@ class MegaCloud:
         if not sources:
             return False
 
-        if not json_response.encrypted and json_response["sources"] is list:
+        if not json_response["encrypted"] and json_response["sources"] is list:
             extractedDatas["intro"] = json_response["intro"]
             extractedDatas["outro"] = json_response["outro"]
             extractedDatas["tracks"] = json_response["tracks"]
@@ -51,19 +49,23 @@ class MegaCloud:
             ]
             return extractedDatas
 
-        data = requests.get(
-            self.script + str(time.time()), headers=self.headers, timeout=10
-        ).text
+        script_api = self.script + str(int(time.time()))
+        print(script_api)
+        data = requests.get(script_api, headers=self.headers, timeout=10).text
 
         if not data:
             return False
 
         vars = self.extract_variables(data)
 
+        print(vars)
+
         if not vars:
             return False
 
         secret, encryped_source = self.get_secret(str(sources), vars)
+
+        print([secret, encryped_source, vars, data])
 
     def get_secret(self, encrypted: str, vars: list):
         secret = ""
@@ -86,14 +88,13 @@ class MegaCloud:
 
     def extract_variables(self, data: str):
         pattern = r"case\s*0x[0-9a-f]+:(?![^;]*=partKey)\s*\w+\s*=\s*(\w+)\s*,\s*\w+\s*=\s*(\w+);"
-        matches = re.match(pattern, data, flags=re.MULTILINE)
-
-        print(matches)
+        matches = re.finditer(pattern, data, flags=re.MULTILINE)
 
         if not matches:
             return []
 
         def parse_matching_key(match):
+            print(match)
             m1 = self.macthing_key(match.group(1), data)
             m2 = self.macthing_key(match.group(2), data)
 
@@ -119,3 +120,8 @@ class MegaCloud:
         if match:
             return match.group(1).replace("0x", "")
         return None
+
+
+if __name__ == "__main__":
+    extractor = MegaCloud()
+    extractor.parse(url="https://megacloud.blog/embed-2/v2/e-1/BtEj3sL0hKV9?k=1")
