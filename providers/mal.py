@@ -28,7 +28,8 @@ class MyAnimeList(Provider):
             return False
 
         try:
-            url = f"{self.jikan_base_url}/anime?q={urllib.parse.quote(search_term)}&limit={limit}&order_by=popularity"
+            url = f"{self.jikan_base_url}/anime?q={urllib.parse.quote(search_term)}&limit={limit}"
+
             response = self.session.get(url)
 
             if response.status_code != 200:
@@ -50,7 +51,7 @@ class MyAnimeList(Provider):
             return False
 
         try:
-            url = f"{self.api_base_url}/anime/{anilist_id}?fields=id,title,main_picture,alternative_titles,synopsis,studios,pictures,background"
+            url = f"{self.api_base_url}/anime/{anilist_id}?fields=id,title,main_picture,alternative_titles,synopsis,studios,pictures,background,num_episodes"
             response = self.session.get(url)
 
             if response.status_code != 200:
@@ -67,6 +68,9 @@ class MyAnimeList(Provider):
     def get_eps_by_id(self, anilist_id: str):
         if not anilist_id:
             return False
+
+        with open(f"{anilist_id}.json", "w") as f:
+            return f.write(str(self.by_id(anilist_id)))
 
         try:
             url = f"{self.jikan_base_url}/anime/{anilist_id}/episodes"

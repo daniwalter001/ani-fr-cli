@@ -3,6 +3,8 @@ import requests
 from bs4 import BeautifulSoup, Tag
 from parser.beautifulSoup import BeautifulScraper
 
+from util.functions import check_anime
+
 
 class HiAnime:
     url = "https://aniwatchtv.to"
@@ -46,10 +48,39 @@ class HiAnime:
         if not search_results:
             return []
 
+        print(search_results)
+
         if not soup:
             return []
 
         return search_results
+
+    def fetch(self, query="", type="", extra_titles: list = []):
+        if not query:
+            return None
+
+        parseQuery = query.replace(" ", "+")
+        api = urllib.parse.urljoin(self.url, "search?keyword=" + parseQuery)
+
+        soup = self.souper.fetchAndParse(api, self.headers)
+
+        if not soup:
+            return None
+
+        search_results = self.extract_search_results(soup)
+
+        if not search_results:
+            return None
+
+        if not soup:
+            return None
+
+        queries = [query]
+
+        if extra_titles:
+            queries.extend(extra_titles)
+
+        return check_anime(queries, search_results)
 
     def extract_search_results(self, soup: BeautifulSoup):
 
@@ -96,9 +127,7 @@ class HiAnime:
     def fetch_eps(self, anime_id: str):
         if not anime_id:
             return []
-        
-        print(anime_id)
-        input("Press enter to continue...")
+
         try:
             api = urllib.parse.urljoin(self.url, "/ajax/v2/episode/list/" + anime_id)
 

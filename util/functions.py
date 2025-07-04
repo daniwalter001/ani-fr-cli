@@ -9,3 +9,10 @@ def clear():
 def exit():
     clear()
     exit()
+
+
+def check_anime(anime: list, search_results: list):
+    for result in search_results:
+        if result["title"] in anime:
+            return result
+    return None

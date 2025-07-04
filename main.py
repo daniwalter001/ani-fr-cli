@@ -7,7 +7,6 @@ from providers.mal import MyAnimeList
 hianime = HiAnime()
 mal = MyAnimeList()
 
-
 while True:
 
     try:
@@ -39,29 +38,49 @@ while True:
             clear()
             break
 
-        eps = hianime.fetch_eps(search_results[choice]["mal_id"])
+        titles = [x["title"] for x in search_results[choice]["titles"]]
 
-        # eps = mal.get_eps_by_id(search_results[choice]["mal_id"])
+        anime_from_hianime = hianime.fetch(
+            search_results[choice]["title"], extra_titles=titles
+        )
+
+        if not anime_from_hianime:
+            clear()
+            continue
+
+        eps = hianime.fetch_eps(anime_from_hianime["id"])
 
         if not eps:
             clear()
             continue
 
         choice = fuzzy_finder(
-            [f"{x['mal_id']}. {x['title']}" for x in eps],
-            prompt="Select episode:",
+            [f"{x['order']}. {x['title']}" for x in eps], prompt="Select episode:"
+        )
+
+        if not choice and choice != 0:
+            clear()
+            continue
+
+        servers = hianime.fetch_servers(eps[choice]["id"])
+
+        if not servers:
+            clear()
+            continue
+
+        choice = fuzzy_finder(
+            [x["title"] for x in servers],
+            prompt="Select server:",
         )
 
         if choice == False and choice != 0:
             clear()
-            break
+            continue
 
-        servers = hianime.fetch_servers(eps[choice]["id"])
+        hianime.fetch_server_data(servers[choice]["id"])
 
-        for idx, server in enumerate(servers):
-            print(f"  {idx + 1}. {server['title']} - {server['data']['link']}")
+        input("\nstop...")
 
-        input("")
     except KeyboardInterrupt as e:
         clear()
         continue
