@@ -44,9 +44,6 @@ class SendVid(Extractor):
 
         # Common video URL patterns to look for
         video_patterns = [
-            r'(https?://[^\s"\']+\.(mp4|webm|ogg|mov|m3u8))',
-            r'src\s*:\s*["\'](https?://[^\s"\']+\.(mp4|webm|ogg|mov|m3u8))["\']',
-            r'file\s*:\s*["\'](https?://[^\s"\']+\.(mp4|webm|ogg|mov|m3u8))["\']',
             r'video_source\s*:\s*["\'](https?://[^\s"\']+\.(mp4|webm|ogg|mov|m3u8))["\']',
         ]
 
@@ -54,6 +51,7 @@ class SendVid(Extractor):
             for script in soup.find_all("script"):
                 script_string = script.string  # type: ignore
                 print(script_string)
+                input("stop...")
                 if script_string:
                     for pattern in video_patterns:
                         matches = re.findall(pattern, script_string, re.IGNORECASE)
