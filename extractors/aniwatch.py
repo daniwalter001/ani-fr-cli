@@ -122,6 +122,7 @@ class MegaCloud:
         return None
 
 
-if __name__ == "__main__":
-    extractor = MegaCloud()
-    extractor.parse(url="https://megacloud.blog/embed-2/v2/e-1/BtEj3sL0hKV9?k=1")
+# if __name__ == "__main__":
+#     extractor = MegaCloud()
+#     extractor.parse(url="https://megacloud.blog/embed-2/v2/e-1/BtEj3sL0hKV9?k=1")
+#

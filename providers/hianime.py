@@ -55,12 +55,19 @@ class HiAnime:
 
         return search_results
 
-    def fetch(self, query="", type="", extra_titles: list = []):
+    def fetch(self, query="", type="TV", extra_titles: list = []):
+
         if not query:
             return None
 
         parseQuery = query.replace(" ", "+")
         api = urllib.parse.urljoin(self.url, "search?keyword=" + parseQuery)
+
+        if type:
+            if type == "Movie":
+                api = api + "&type=1"
+            elif type == "TV":
+                api = api + "&type=2"
 
         soup = self.souper.fetchAndParse(api, self.headers)
 
@@ -80,7 +87,20 @@ class HiAnime:
         if extra_titles:
             queries.extend(extra_titles)
 
-        return check_anime(queries, search_results)
+        # print("queries========")
+        # print([i for i in queries])
+
+        # print("search_results========")
+        # print([i["title"] for i in search_results])
+
+        # input("stop...")
+
+        first_try = check_anime(queries, search_results)
+
+        if not first_try:
+            return search_results[0] if search_results else None
+
+        return first_try
 
     def extract_search_results(self, soup: BeautifulSoup):
 

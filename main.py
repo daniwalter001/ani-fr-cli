@@ -1,10 +1,17 @@
 from providers.hianime import HiAnime
+from providers.anime_sama import AnimeSama
+
 from util.fzf_handler import fuzzy_finder
 from util.functions import clear
+from util.functions import extract
+
 from providers.mal import MyAnimeList
+
+from urllib import parse
 
 
 hianime = HiAnime()
+animesama = AnimeSama()
 mal = MyAnimeList()
 
 while True:
@@ -40,46 +47,93 @@ while True:
 
         titles = [x["title"] for x in search_results[choice]["titles"]]
 
-        anime_from_hianime = hianime.fetch(
-            search_results[choice]["title"], extra_titles=titles
+        anime_from_hianime = animesama.fetch(
+            search_results[choice]["title"],
+            extra_titles=titles,
+            type=search_results[choice]["type"],
         )
 
         if not anime_from_hianime:
             clear()
             continue
 
-        eps = hianime.fetch_eps(anime_from_hianime["id"])
-
-        if not eps:
-            clear()
-            continue
-
-        choice = fuzzy_finder(
-            [f"{x['order']}. {x['title']}" for x in eps], prompt="Select episode:"
+        print(
+            f"Title: {anime_from_hianime["title"]}, Type: {anime_from_hianime["type"]}"
         )
 
-        if not choice and choice != 0:
+        saisons = animesama.fetch_saisons(anime_from_hianime["url"])
+
+        if not saisons:
             clear()
             continue
 
-        servers = hianime.fetch_servers(eps[choice]["id"])
+        while True:
+            try:
+                choice = fuzzy_finder(
+                    [
+                        f"{x['type']}. {x['title']}"
+                        for x in saisons
+                        if x["type"] != "manga"
+                    ],
+                    prompt="Select saison:",
+                )
 
-        if not servers:
-            clear()
-            continue
+                season = saisons[choice]
 
-        choice = fuzzy_finder(
-            [x["title"] for x in servers],
-            prompt="Select server:",
-        )
+                if not season:
+                    clear()
+                    continue
 
-        if choice == False and choice != 0:
-            clear()
-            continue
+                eps = animesama.fetch_eps(season_url=season["link"])
 
-        hianime.fetch_server_data(servers[choice]["id"])
+                if not eps:
+                    clear()
+                    continue
 
-        input("\nstop...")
+                while True:
+                    try:
+
+                        choice = fuzzy_finder(
+                            [f"Episode. {x['episode']}" for x in eps],
+                            prompt="Select eps:",
+                        )
+
+                        sources = eps[choice]["sources"]
+
+                        if not sources:
+                            clear()
+                            continue
+
+                        choice = fuzzy_finder(
+                            [x for x in sources], prompt="Select souces:"
+                        )
+
+                        source = sources[choice]
+
+                        if not source:
+                            clear()
+                            continue
+
+                        real_link = extract(source, referer=season["link"])
+
+                        print("real_link: ")
+                        print(real_link)
+
+                        input("\nstop...")
+
+                    except KeyboardInterrupt as e:
+                        clear()
+                        break
+                    except:
+                        clear()
+                        continue
+
+            except KeyboardInterrupt as e:
+                clear()
+                break
+            except:
+                clear()
+                continue
 
     except KeyboardInterrupt as e:
         clear()

@@ -27,3 +27,14 @@ class BeautifulScraper:
             return self.parse(response.text)
         except:
             return False
+
+    def postAndParse(self, url="", payload={}, extra_headers={}):
+        try:
+            if not url:
+                return False
+            response = requests.post(
+                url, data=payload, headers=extra_headers, timeout=10
+            )
+            return self.parse(response.text)
+        except:
+            return False
