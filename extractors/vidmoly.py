@@ -18,17 +18,15 @@ class Vidmoly:
 
     @staticmethod
     def fetch(url: str, referer=None):
-
-        print(url)
-        input("stop...")
         try:
-
             if referer:
                 Vidmoly.headers["referer"] = referer
 
             response = requests.get(url, headers=Vidmoly.headers, timeout=10)
             return response.text
-        except:
+        except Exception as e:
+            print(e)
+            input("stop...erreur")
             return False
 
     @staticmethod
@@ -37,12 +35,11 @@ class Vidmoly:
         pattern = r"player\.setup\(\s*{[\s\S]*?sources:\s*\[({[\s\S]*?})\][\s\S]*?}\)"
 
         html_content = Vidmoly.fetch(url, referer)
+
         if not html_content:
             return None
 
         match = re.search(pattern, html_content, re.DOTALL)
-
-        print(match)
 
         if not match:
             return None
@@ -79,19 +76,10 @@ class Vidmoly:
             if matches:
                 # Return the first match (first group if it's a tuple)
                 match = matches[0]
-                return match[0] if isinstance(match, tuple) else match
+                return (
+                    {"url": match[0], "referer": url}
+                    if isinstance(match, tuple)
+                    else {"url": match, "referer": url}
+                )
 
         return None
-
-
-# # Exemple d'utilisation
-if __name__ == "__main__":
-
-    video_url = Vidmoly.extract(
-        "https://vidmoly.to/embed-nh7zisu5fagw.html", referer="https://vidmoly.to/"
-    )
-    if video_url:
-        print("URL source trouvée:")
-        print(video_url)
-    else:
-        print("Aucune URL source trouvée")

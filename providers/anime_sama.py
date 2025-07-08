@@ -74,7 +74,7 @@ class AnimeSama:
 
         i = 0
         if len(search_results) == 0:
-            while not search_results:
+            while not search_results and i < len(extra_titles):
                 print(extra_titles[i])
                 search_results = self.search(extra_titles[i], type)
                 i += 1
@@ -83,18 +83,10 @@ class AnimeSama:
 
         queries = [query]
 
-        # print("queries========")
-        # print([i for i in queries])
-
-        # print("search_results========")
-        # print([i["title"] for i in search_results])
-
-        # input("stop...")
-
         first_try = check_anime(queries, search_results)
 
         if not first_try:
-            return search_results[0] if search_results else None
+            return search_results[0] if search_results else None  # type: ignore
 
         return first_try
 
@@ -375,3 +367,45 @@ class AnimeSama:
             return False
 
         return json_response
+
+    def switch_to_vf_or_vostfr(self, season):
+        lang_vers = []
+
+        if not season:
+            return
+
+        try:
+            if season["link"].endswith("vostfr") or season["link"].endswith("vostfr/"):
+                _t = {
+                    "title": season["title"] + " VF",
+                    "link": season["link"].replace("vostfr", "vf"),
+                    "type": season["type"],
+                }
+
+                _t2 = {
+                    "title": season["title"] + " VOSTFR",
+                    "link": season["link"],
+                    "type": season["type"],
+                }
+
+                lang_vers.append(_t)
+                lang_vers.append(_t2)
+
+            elif season["link"].endswith("vf") or season["link"].endswith("vf/"):
+                _t = {
+                    "title": season["title"] + " VOSTFR",
+                    "link": season["link"].replace("vf", "vostfr"),
+                    "type": season["type"],
+                }
+
+                _t2 = {
+                    "title": season["title"] + " VF",
+                    "link": season["link"],
+                    "type": season["type"],
+                }
+                lang_vers.append(_t)
+                lang_vers.append(_t2)
+
+            return lang_vers
+        except:
+            return [season]

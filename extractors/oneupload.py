@@ -4,7 +4,7 @@ import requests
 
 class OneUpload:
 
-    keywords = ["oneupload", "vidmoly"]
+    keywords = ["oneupload"]
 
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3",
@@ -19,8 +19,6 @@ class OneUpload:
     @staticmethod
     def fetch(url: str, referer=None):
 
-        print(url)
-        input("stop...")
         try:
 
             if referer:
@@ -41,8 +39,6 @@ class OneUpload:
             return None
 
         match = re.search(pattern, html_content, re.DOTALL)
-
-        print(match)
 
         if not match:
             return None
@@ -68,16 +64,3 @@ class OneUpload:
                 return {"url": file_match.group(1), "referer": url}
 
         return None
-
-
-# # Exemple d'utilisation
-if __name__ == "__main__":
-
-    video_url = OneUpload.extract(
-        "https://vidmoly.to/embed-nh7zisu5fagw.html", referer="https://vidmoly.to/"
-    )
-    if video_url:
-        print("URL source trouvée:")
-        print(video_url)
-    else:
-        print("Aucune URL source trouvée")

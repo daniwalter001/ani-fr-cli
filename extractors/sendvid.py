@@ -14,7 +14,7 @@ class SendVid(Extractor):
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3",
         "referer": "https://sendvid.com/",
     }
-    
+
     @staticmethod
     def match(url: str):
         match = any(keyword in url for keyword in SendVid.keywords)
@@ -24,7 +24,10 @@ class SendVid(Extractor):
     def fetch(url: str, referer=None):
         try:
             if referer:
-                SendVid.headers = {"Referer": referer}
+                SendVid.headers = {
+                    "Referer": referer,
+                    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3",
+                }
 
             response = requests.get(url, headers=SendVid.headers, timeout=10)
             return response.text
@@ -44,17 +47,18 @@ class SendVid(Extractor):
 
         # Common video URL patterns to look for
         video_patterns = [
-            r'video_source\s*:\s*["\'](https?://[^\s"\']+\.(mp4|webm|ogg|mov|m3u8))["\']',
+            # r'video_source\s*:\s*["\'](https?://[^\s"\']+\.(mp4|webm|ogg|mov|m3u8))["\']',
+            r"video_source\s*=\s*[\"\'](http.*)[\"\']",
+            r"source\s+src=\s*[\"\'](http.*)[\"\']",
+            r"content=\s*[\"\'](http.*)[\"\']",
         ]
 
         try:
             for script in soup.find_all("script"):
                 script_string = script.string  # type: ignore
-                print(script_string)
-                input("stop...")
                 if script_string:
                     for pattern in video_patterns:
-                        matches = re.findall(pattern, script_string, re.IGNORECASE)
+                        matches = re.findall(pattern, script_string, re.MULTILINE)
                         for match in matches:
                             if isinstance(match, tuple):
                                 video_sources.append(match[0])  # First group is the URL
@@ -85,11 +89,15 @@ class SendVid(Extractor):
             # Remove duplicates while preserving order
             seen = set()
             unique_sources = []
-            for url in video_sources:
-                if url not in seen:
-                    seen.add(url)
-                    unique_sources.append(url)
+            for _url in video_sources:
+                if _url not in seen:
+                    seen.add(_url)
+                    unique_sources.append(_url)
 
-            return unique_sources
+            return (
+                {"url": unique_sources.pop(0), "referer": url}
+                if len(unique_sources) != 0
+                else None
+            )
         except:
             return None

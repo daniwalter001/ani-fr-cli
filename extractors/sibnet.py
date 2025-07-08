@@ -2,6 +2,7 @@ from bs4 import BeautifulSoup
 from urllib import parse
 import requests
 from extractors.extractor import Extractor
+import re
 
 
 class Sibnet(Extractor):
@@ -32,7 +33,7 @@ class Sibnet(Extractor):
             return False
 
     @staticmethod
-    def extract(url):
+    def extract(url, referer=None):
 
         html_content = Sibnet.fetch(url)
 
@@ -41,35 +42,68 @@ class Sibnet(Extractor):
 
         soup = BeautifulSoup(html_content, "html.parser")
 
-        script_tags = soup.find_all("script", {"type": "text/javascript"})
+        pattern = r"player\.src\(\[\{src:\s*[\"\'](.+?)[\"\'],"
 
-        result = {"referer": None, "src": None}
+        result = {
+            "referer": url,
+        }
 
-        for script in script_tags:
-            if script.string and "countersibnet" in script.string:  # type: ignore
+        temp_url = ""
 
-                script_string = script.string  # type: ignore
-                # Extraire le referer
-                if "referrer" in script_string:
-                    referer_start = script_string.find("'referrer' : '") + len(
-                        "'referrer' : '"
-                    )
-                    referer_end = script_string.find("'", referer_start)
-                    result["referer"] = script_string[referer_start:referer_end]  # type: ignore
+        try:
+            match = re.search(pattern, html_content)
 
-                if "player.src" in script_string:
-                    src_start = script_string.find('src: "') + len('src: "')
-                    src_end = script_string.find('"', src_start)
-                    result["src"] = script_string[src_start:src_end]  # type: ignore
+            if match:
+                temp_url = parse.urljoin(Sibnet.host, match.group(1))
 
-                if result["referer"] and result["src"]:
-                    result["src"] = parse.urljoin(Sibnet.host, result["src"])  # type: ignore
+            while not result.get("url"):
+                response = requests.get(
+                    temp_url, headers=Sibnet.headers, timeout=10, allow_redirects=False
+                )
+
+                if response.status_code == 200:
+                    temp_url = response.headers["Location"]
+                    result["url"] = temp_url
                     break
 
-        return result if result["referer"] or result["src"] else None
+                elif response.status_code >= 300 and response.status_code < 400:
+                    Sibnet.headers["referer"] = "https://video.sibnet.ru/"
+                    temp_url = response.headers["Location"]
+                    if temp_url.startswith("//"):
+                        temp_url = "http:" + temp_url
+                    Sibnet.headers["Host"] = parse.urlparse(temp_url).netloc
 
+                    if response.headers.get("content-length"):
+                        result["url"] = temp_url
+                        break
 
-# Exemple d'utilisation
-# html_content = """[votre code HTML ici]"""
-# extracted_data = extract_referer_and_src(html_content)
-# print(extracted_data)
+                    continue
+
+                else:
+                    print(response.status_code)
+                    input("stop...")
+                    break
+
+            return result
+        except Exception as e:
+            print(e)
+            input("stop...")
+
+    @staticmethod
+    def get_cookie(video_id, referer=None):
+        if not video_id:
+            return None
+
+        url = parse.urljoin(Sibnet.host, f"/c.php?videoid={video_id}")
+        headers_ = {"referer": referer, "host": parse.urlparse(referer).netloc}
+
+        try:
+            response = requests.head(url, headers=headers_, timeout=10)
+
+            if response.status_code == 200:
+                return response.headers["Set-Cookie"]
+
+        except Exception as e:
+            print(e)
+            input("stop...")
+            return

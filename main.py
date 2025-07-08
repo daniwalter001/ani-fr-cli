@@ -3,7 +3,7 @@ from providers.anime_sama import AnimeSama
 
 from util.fzf_handler import fuzzy_finder
 from util.functions import clear
-from util.functions import extract
+from util.functions import extract, play_with_mpv, play_with_iina
 
 from providers.mal import MyAnimeList
 
@@ -36,102 +36,143 @@ while True:
             clear()
             continue
 
-        choice = fuzzy_finder(
-            [x["title"] for x in search_results],
-            prompt="Select anime:",
-        )
-
-        if choice == False and choice != 0:
-            clear()
-            break
-
-        titles = [x["title"] for x in search_results[choice]["titles"]]
-
-        anime_from_hianime = animesama.fetch(
-            search_results[choice]["title"],
-            extra_titles=titles,
-            type=search_results[choice]["type"],
-        )
-
-        if not anime_from_hianime:
-            clear()
-            continue
-
-        print(
-            f"Title: {anime_from_hianime["title"]}, Type: {anime_from_hianime["type"]}"
-        )
-
-        saisons = animesama.fetch_saisons(anime_from_hianime["url"])
-
-        if not saisons:
-            clear()
-            continue
-
         while True:
             try:
                 choice = fuzzy_finder(
-                    [
-                        f"{x['type']}. {x['title']}"
-                        for x in saisons
-                        if x["type"] != "manga"
-                    ],
-                    prompt="Select saison:",
+                    [x["title"] for x in search_results],
+                    prompt="Select anime:",
                 )
 
-                season = saisons[choice]
+                if choice == False and choice != 0:
+                    clear()
+                    break
 
-                if not season:
+                titles = [x["title"] for x in search_results[choice]["titles"]]
+
+                anime_from_hianime = animesama.fetch(
+                    search_results[choice]["title"],
+                    extra_titles=titles,
+                    type=search_results[choice]["type"],
+                )
+
+                if not anime_from_hianime:
                     clear()
                     continue
 
-                eps = animesama.fetch_eps(season_url=season["link"])
+                print(
+                    f"Title: {anime_from_hianime["title"]}, Type: {anime_from_hianime["type"]}"
+                )
 
-                if not eps:
+                saisons = animesama.fetch_saisons(anime_from_hianime["url"])
+
+                if not saisons:
                     clear()
                     continue
 
                 while True:
                     try:
-
                         choice = fuzzy_finder(
-                            [f"Episode. {x['episode']}" for x in eps],
-                            prompt="Select eps:",
+                            [
+                                f"{x['type']}. {x['title']}"
+                                for x in saisons
+                                if x["type"] != "manga"
+                            ],
+                            prompt="Select saison:",
                         )
 
-                        sources = eps[choice]["sources"]
+                        season = saisons[choice]
 
-                        if not sources:
+                        if not season:
+                            clear()
+                            continue
+
+                        lang_vers = animesama.switch_to_vf_or_vostfr(season)
+
+                        if not lang_vers:
                             clear()
                             continue
 
                         choice = fuzzy_finder(
-                            [x for x in sources], prompt="Select souces:"
+                            [f"{x['title']}" for x in lang_vers],
+                            prompt="Select lang:",
                         )
 
-                        source = sources[choice]
+                        season = lang_vers[choice]
 
-                        if not source:
+                        eps = animesama.fetch_eps(season_url=season["link"])
+
+                        if not eps:
                             clear()
                             continue
 
-                        real_link = extract(source, referer=season["link"])
+                        while True:
+                            try:
 
-                        print("real_link: ")
-                        print(real_link)
+                                choice = fuzzy_finder(
+                                    [f"Episode. {x['episode']}" for x in eps],
+                                    prompt="Select eps:",
+                                )
 
-                        input("\nstop...")
+                                sources = eps[choice]["sources"]
+
+                                if not sources:
+                                    clear()
+                                    continue
+
+                                choice = fuzzy_finder(
+                                    [x for x in sources], prompt="Select souces:"
+                                )
+
+                                source = sources[choice]
+
+                                if not source:
+                                    clear()
+                                    continue
+
+                                real_link = extract(source, referer=season["link"])
+
+                                print(
+                                    f"Real URL: { "found" if real_link and "url" in real_link else "not found"} "
+                                )
+
+                                if (
+                                    not real_link
+                                    or "url" not in real_link
+                                    or "referer" not in real_link
+                                ):
+                                    clear()
+                                    continue
+
+                                play_with_iina(
+                                    str(real_link["url"]), str(season["link"])
+                                )
+                                # play_with_iina(str(real_link["url"]), str(real_link["referer"]))
+
+                                input("\nPress Enter to continue...")
+
+                            except KeyboardInterrupt as e:
+                                clear()
+                                break
+                            except Exception as e:
+                                print(e)
+                                input("stop...")
+                                clear()
+                                continue
 
                     except KeyboardInterrupt as e:
                         clear()
                         break
-                    except:
+                    except Exception as e:
+                        print(e)
+                        input("stop...")
                         clear()
                         continue
-
             except KeyboardInterrupt as e:
                 clear()
                 break
-            except:
+            except Exception as e:
+                print(e)
+                input("stop...")
                 clear()
                 continue
 

@@ -51,15 +51,41 @@ def extract(url: str, referer: str = ""):
 
     if OneUpload.match(url):
         return OneUpload.extract(url, referer)
+    if "anime-sama" in url:
+        return {"url": url, "referer": referer}
     elif SendVid.match(url):
         return SendVid.extract(url, referer)
     elif Sibnet.match(url):
-        return Sibnet.extract(url)
+        return Sibnet.extract(url, referer)
     elif Vidmoly.match(url):
-        return Vidmoly.extract(url)
+        return Vidmoly.extract(url, referer=referer)
     else:
-        return url
+        return {"url": url, "referer": referer}
 
 
 def stop(text: str = ""):
     input(text or "Press Enter to continue...")
+
+
+def play_with_mpv(url: str = "", referer: str = ""):
+
+    if not url:
+        return
+
+    try:
+        os.system(f'mpv "{url}" --referer="{referer}"')
+        stop("Press Enter to continue...")
+    except:
+        print("mpv not found")
+
+
+def play_with_iina(url: str = "", referer: str = ""):
+
+    if not url:
+        return
+
+    try:
+        # print((f'iina "{url}" --referer   ="{referer}"'))
+        os.system(f'iina "{url}" --referer="{referer}"')
+    except:
+        print("iina not found")
