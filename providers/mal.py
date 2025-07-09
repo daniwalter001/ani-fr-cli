@@ -29,7 +29,7 @@ class MyAnimeList(Provider):
 
         try:
             url = f"{self.jikan_base_url}/anime?q={urllib.parse.quote(search_term)}&limit={limit}"
-
+            
             response = self.session.get(url)
 
             if response.status_code != 200:
