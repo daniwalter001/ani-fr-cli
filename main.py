@@ -60,7 +60,7 @@ while True:
                     continue
 
                 print(
-                    f"Title: {anime_from_hianime["title"]}, Type: {anime_from_hianime["type"]}"
+                    f"Title: {anime_from_hianime['title']}, Type: {anime_from_hianime['type']}"
                 )
 
                 saisons = animesama.fetch_saisons(anime_from_hianime["url"])
@@ -132,7 +132,7 @@ while True:
                                 real_link = extract(source, referer=season["link"])
 
                                 print(
-                                    f"Real URL: { "found" if real_link and "url" in real_link else "not found"} "
+                                    f"Real URL: { 'found' if real_link and 'url' in real_link else 'not found'} "
                                 )
 
                                 if (
@@ -143,7 +143,7 @@ while True:
                                     clear()
                                     continue
 
-                                play_with_iina(
+                                play_with_mpv(
                                     str(real_link["url"]), str(season["link"])
                                 )
                                 # play_with_iina(str(real_link["url"]), str(real_link["referer"]))

@@ -73,7 +73,8 @@ def play_with_mpv(url: str = "", referer: str = ""):
         return
 
     try:
-        os.system(f'mpv "{url}" --referer="{referer}"')
+        # os.system(f"mpv --referrer='{referer}' '{url}' --profile=low-latency")
+        print(f"mpv --referrer='{referer}' '{url}' --profile=low-latency")
         stop("Press Enter to continue...")
     except:
         print("mpv not found")
