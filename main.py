@@ -1,9 +1,10 @@
 from providers.hianime import HiAnime
-from providers.anime_sama import AnimeSama
+from providers.anime_ultra import AnimeUltra
 
 from util.fzf_handler import fuzzy_finder
 from util.functions import clear
-from util.functions import extract, play_with_mpv, play_with_iina
+from util.functions import play_with_mpv, play_with_iina
+from util.services import extract
 
 from providers.mal import MyAnimeList
 
@@ -11,8 +12,9 @@ from urllib import parse
 
 
 hianime = HiAnime()
-animesama = AnimeSama()
 mal = MyAnimeList()
+animeu = AnimeUltra()
+
 
 while True:
 
@@ -36,146 +38,37 @@ while True:
             clear()
             continue
 
-        while True:
-            try:
-                choice = fuzzy_finder(
-                    [x["title"] for x in search_results],
-                    prompt="Select anime:",
-                )
+        choice = fuzzy_finder(
+            [x["title"] for x in search_results],
+            prompt="Select anime:",
+        )
 
-                if choice == False and choice != 0:
-                    clear()
-                    break
+        if choice == False and choice != 0:
+            clear()
+            break
 
-                titles = [x["title"] for x in search_results[choice]["titles"]]
+        anime_selected = search_results[choice]
 
-                anime_from_hianime = animesama.fetch(
-                    search_results[choice]["title"],
-                    extra_titles=titles,
-                    type=search_results[choice]["type"],
-                )
+        if not anime_selected:
+            clear()
+            continue
 
-                if not anime_from_hianime:
-                    clear()
-                    continue
+        titles = [x["title"] for x in anime_selected["titles"]]
 
-                print(
-                    f"Title: {anime_from_hianime["title"]}, Type: {anime_from_hianime["type"]}"
-                )
+        # vostfree
 
-                saisons = animesama.fetch_saisons(anime_from_hianime["url"])
+        anime_search_results = animeu.fetch(
+            anime_selected["title"], type=anime_selected["type"], extra_titles=titles
+        )
 
-                if not saisons:
-                    clear()
-                    continue
+        print(anime_search_results)
+        
+        with open("anime_search_results.json", "w") as f:
+            f.write(str(anime_search_results))
 
-                while True:
-                    try:
-                        choice = fuzzy_finder(
-                            [
-                                f"{x['type']}. {x['title']}"
-                                for x in saisons
-                                if x["type"] != "manga"
-                            ],
-                            prompt="Select saison:",
-                        )
+        input("Press Enter to continue...")
 
-                        season = saisons[choice]
-
-                        if not season:
-                            clear()
-                            continue
-
-                        lang_vers = animesama.switch_to_vf_or_vostfr(season)
-
-                        if not lang_vers:
-                            clear()
-                            continue
-
-                        choice = fuzzy_finder(
-                            [f"{x['title']}" for x in lang_vers],
-                            prompt="Select lang:",
-                        )
-
-                        season = lang_vers[choice]
-
-                        eps = animesama.fetch_eps(season_url=season["link"])
-
-                        if not eps:
-                            clear()
-                            continue
-
-                        while True:
-                            try:
-
-                                choice = fuzzy_finder(
-                                    [f"Episode. {x['episode']}" for x in eps],
-                                    prompt="Select eps:",
-                                )
-
-                                sources = eps[choice]["sources"]
-
-                                if not sources:
-                                    clear()
-                                    continue
-
-                                choice = fuzzy_finder(
-                                    [x for x in sources], prompt="Select souces:"
-                                )
-
-                                source = sources[choice]
-
-                                if not source:
-                                    clear()
-                                    continue
-
-                                real_link = extract(source, referer=season["link"])
-
-                                print(
-                                    f"Real URL: { "found" if real_link and "url" in real_link else "not found"} "
-                                )
-
-                                if (
-                                    not real_link
-                                    or "url" not in real_link
-                                    or "referer" not in real_link
-                                ):
-                                    clear()
-                                    continue
-
-                                play_with_iina(
-                                    str(real_link["url"]), str(season["link"])
-                                )
-                                # play_with_iina(str(real_link["url"]), str(real_link["referer"]))
-
-                                input("\nPress Enter to continue...")
-
-                            except KeyboardInterrupt as e:
-                                clear()
-                                break
-                            except Exception as e:
-                                print(e)
-                                input("stop...")
-                                clear()
-                                continue
-
-                    except KeyboardInterrupt as e:
-                        clear()
-                        break
-                    except Exception as e:
-                        print(e)
-                        input("stop...")
-                        clear()
-                        continue
-            except KeyboardInterrupt as e:
-                clear()
-                break
-            except Exception as e:
-                print(e)
-                input("stop...")
-                clear()
-                continue
-
+    ##vostfree
     except KeyboardInterrupt as e:
         clear()
         continue

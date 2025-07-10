@@ -1,10 +1,6 @@
 import os
 import re
-from extractors.oneupload import OneUpload
-from extractors.sendvid import SendVid
-from extractors.sibnet import Sibnet
-from extractors.vidmoly import Vidmoly
-from extractors.smoothpre import Smoothpre
+import html
 
 
 def clear():
@@ -44,26 +40,6 @@ def extract_links(text):
     urls = re.findall(url_pattern, text)
 
     return urls
-
-
-def extract(url: str, referer: str = ""):
-    if not url:
-        return None
-
-    if OneUpload.match(url):
-        return OneUpload.extract(url, referer)
-    if "anime-sama" in url:
-        return {"url": url, "referer": referer}
-    elif SendVid.match(url):
-        return SendVid.extract(url, referer)
-    elif Sibnet.match(url):
-        return Sibnet.extract(url, referer)
-    elif Vidmoly.match(url):
-        return Vidmoly.extract(url, referer=referer)
-    elif Smoothpre.match(url):
-        return Smoothpre.extract(url, referer=referer)
-    else:
-        return {"url": url, "referer": referer}
 
 
 def stop(text: str = ""):
@@ -120,3 +96,20 @@ def kill_all_process(process_name=""):
     os.system(f"pgrep -i '{process_name}' | xargs kill -9")
 
     os.system(f"pkill -i {process_name}")
+
+
+def remove_special_chars(text: str):
+
+    try:
+        decoded_text = re.sub(
+            r"\\u([0-9a-fA-F]{4})", lambda m: chr(int(m.group(1), 16)), text
+        )
+
+        decoded_text = decoded_text.replace("\u00a0", " ")
+
+        decoded_text = html.unescape(decoded_text)
+        decoded_text = re.sub(r"\s+", " ", text)
+
+        return decoded_text
+    except Exception as e:
+        return text
