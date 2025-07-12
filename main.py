@@ -56,22 +56,31 @@ while True:
 
                 providers = ["AnimeSama", "AnimeUltra"]
 
-                choice = fuzzy_finder(
-                    [x for x in providers],
-                    prompt="Select provider:",
-                )
+                while True:
+                    try:
+                        choice = fuzzy_finder(
+                            [x for x in providers],
+                            prompt="Select provider:",
+                        )
 
-                if choice == False and choice != 0:
-                    clear()
-                    continue
+                        if choice == False and choice != 0:
+                            clear()
+                            continue
 
-                if choice == 0:
-                    asama.handle(anime_selected)
-                elif choice == 1:
-                    aultra.handle(anime_selected)
-                else:
-                    clear()
-                    continue
+                        if choice == 0:
+                            asama.handle(anime_selected)
+                        elif choice == 1:
+                            aultra.handle(anime_selected)
+                        else:
+                            clear()
+                            continue
+
+                    except KeyboardInterrupt as e:
+                        clear()
+                        break
+                    except Exception as e:
+                        clear()
+                        continue
 
             except KeyboardInterrupt as e:
                 clear()

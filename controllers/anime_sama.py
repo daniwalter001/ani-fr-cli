@@ -37,93 +37,76 @@ def handle(anime_selected: dict):
                 clear()
                 continue
 
+            choice = fuzzy_finder(
+                [f"{x['type']}. {x['title']}" for x in saisons if x["type"] != "manga"],
+                prompt="Select saison:",
+            )
+
+            season = saisons[choice]
+
+            if not season:
+                clear()
+                continue
+
+            lang_vers = animesama.switch_to_vf_or_vostfr(season)
+
+            if not lang_vers:
+                clear()
+                continue
+
+            choice = fuzzy_finder(
+                [f"{x['title']}" for x in lang_vers],
+                prompt="Select lang:",
+            )
+
+            season = lang_vers[choice]
+
+            eps = animesama.fetch_eps(season_url=season["link"])
+
+            if not eps:
+                clear()
+                continue
+
             while True:
                 try:
-                    choice = fuzzy_finder(
-                        [
-                            f"{x['type']}. {x['title']}"
-                            for x in saisons
-                            if x["type"] != "manga"
-                        ],
-                        prompt="Select saison:",
-                    )
-
-                    season = saisons[choice]
-
-                    if not season:
-                        clear()
-                        continue
-
-                    lang_vers = animesama.switch_to_vf_or_vostfr(season)
-
-                    if not lang_vers:
-                        clear()
-                        continue
 
                     choice = fuzzy_finder(
-                        [f"{x['title']}" for x in lang_vers],
-                        prompt="Select lang:",
+                        [f"Episode. {x['episode']}" for x in eps],
+                        prompt="Select eps:",
                     )
 
-                    season = lang_vers[choice]
+                    sources = eps[choice]["sources"]
 
-                    eps = animesama.fetch_eps(season_url=season["link"])
-
-                    if not eps:
+                    if not sources:
                         clear()
                         continue
 
-                    while True:
-                        try:
+                    choice = fuzzy_finder([x for x in sources], prompt="Select souces:")
 
-                            choice = fuzzy_finder(
-                                [f"Episode. {x['episode']}" for x in eps],
-                                prompt="Select eps:",
-                            )
+                    source = sources[choice]
 
-                            sources = eps[choice]["sources"]
+                    if not source:
+                        clear()
+                        continue
 
-                            if not sources:
-                                clear()
-                                continue
+                    real_link = extract(source, referer=season["link"])
 
-                            choice = fuzzy_finder(
-                                [x for x in sources], prompt="Select souces:"
-                            )
+                    print(
+                        f"Real URL: { "found" if real_link and "url" in real_link else "not found"} "
+                    )
 
-                            source = sources[choice]
+                    if (
+                        not real_link
+                        or "url" not in real_link
+                        or "referer" not in real_link
+                    ):
+                        clear()
+                        continue
 
-                            if not source:
-                                clear()
-                                continue
+                    play_with_iina(str(real_link["url"]), str(season["link"]))
+                    # play_with_iina(str(real_link["url"]), str(real_link["referer"]))
 
-                            real_link = extract(source, referer=season["link"])
-
-                            print(
-                                f"Real URL: { "found" if real_link and "url" in real_link else "not found"} "
-                            )
-
-                            if (
-                                not real_link
-                                or "url" not in real_link
-                                or "referer" not in real_link
-                            ):
-                                clear()
-                                continue
-
-                            play_with_iina(str(real_link["url"]), str(season["link"]))
-                            # play_with_iina(str(real_link["url"]), str(real_link["referer"]))
-
-                            input("\nPress Enter to continue...")
-
-                        except KeyboardInterrupt as e:
-                            clear()
-                            break
-                        except Exception as e:
-                            print(e)
-                            input("stop...")
-                            clear()
-                            continue
+                    input("\nPress Enter to continue...")
 
                 except KeyboardInterrupt as e:
                     clear()
@@ -133,6 +116,7 @@ def handle(anime_selected: dict):
                     input("stop...")
                     clear()
                     continue
+
         except KeyboardInterrupt as e:
             clear()
             break
