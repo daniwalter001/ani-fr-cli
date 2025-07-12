@@ -3,6 +3,8 @@ from extractors.sendvid import SendVid
 from extractors.sibnet import Sibnet
 from extractors.smoothpre import Smoothpre
 from extractors.vidmoly import Vidmoly
+from extractors.vidcn import VidCdn
+
 
 
 def extract(url: str, referer: str = ""):
@@ -21,6 +23,8 @@ def extract(url: str, referer: str = ""):
         return Vidmoly.extract(url, referer=referer)
     elif Smoothpre.match(url):
         return Smoothpre.extract(url, referer=referer)
+    elif VidCdn.match(url):
+        return VidCdn.extract(url, referer=referer)
     else:
         return {"url": url, "referer": referer}
 

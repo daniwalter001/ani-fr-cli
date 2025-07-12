@@ -3,15 +3,13 @@ import requests
 from bs4 import BeautifulSoup, Tag
 from parser.beautifulSoup import BeautifulScraper
 import re
-import json
+import time
 
 from util.functions import check_anime, extract_links, join_path, remove_special_chars
 
 
 class AnimeUltra:
     url = "https://v8.animesultra.net/"
-    search_api = "https://v8.animesultra.net/engine/ajax/controller.php?mod=search"
-    eps = "https://v8.animesultra.net/engine/ajax/full-story.php?newsId=127&d=1752141531510"
 
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/237.84.2.178 Safari/537.36",
@@ -46,8 +44,6 @@ class AnimeUltra:
             self.url, f"/?do=search&mode=advanced&subaction=search&story={query}"
         )
 
-        print(api)
-
         soup = self.souper.fetchAndParse(api, extra_headers=self.headers)
 
         if not soup:
@@ -81,69 +77,73 @@ class AnimeUltra:
                 if search_results:
                     break
 
-        queries = [query]
+        # queries = [query]
 
-        first_try = check_anime(queries, search_results)
+        # first_try = check_anime(queries, search_results)
 
-        if not first_try:
-            return search_results[0] if search_results else None  # type: ignore
+        # if not first_try:
+        #     return search_results[0] if search_results else None  # type: ignore
 
-        return first_try
+        # return first_try
+
+        return search_results
 
     def extract_search_results(self, soup: BeautifulSoup):
+        try:
+            res_nodes = soup.select("div.flw-item", limit=30)
 
-        res_nodes = soup.select("div.flw-item", limit=30)
+            if not res_nodes:
+                return []
 
-        if not res_nodes:
-            return []
+            results = []
 
-        results = []
+            for i, node in enumerate(res_nodes):
 
-        for i, node in enumerate(res_nodes):
+                if not node:
+                    continue
 
-            if not node:
-                continue
-
-            to_append = {
-                "title": self.get_first_from_selects(
-                    node, ["div.film-detail h3.film-name a"]
-                ).text,
-                "url": urllib.parse.urljoin(
-                    self.url,
-                    self.get_first_from_selects(node, ["div.film-detail h3.film-name a"]).get("href"),  # type: ignore
-                ),
-                "image": urllib.parse.urljoin(
-                    self.url,
-                    str(
-                        self.get_first_from_selects(node, ["div.film-poster img"]).get(
-                            "data-src"
-                        )
+                to_append = {
+                    "title": self.get_first_from_selects(
+                        node, ["div.film-detail h3.film-name a"]
+                    ).text,
+                    "url": urllib.parse.urljoin(
+                        self.url,
+                        self.get_first_from_selects(node, ["div.film-detail h3.film-name a"]).get("href"),  # type: ignore
                     ),
-                ),
-                "description": remove_special_chars(
-                    self.get_first_from_selects(node, ["div.fd-infor"]).text.replace(
-                        "\n", " "
-                    )
-                ),
-                "duration": remove_special_chars(
-                    self.get_first_from_selects(node, ["span.fdi-duration"]).text
-                ),
-                "year": remove_special_chars(
-                    self.get_first_from_selects(node, ["span.fdi-year"]).text
-                ),
-                "detail": remove_special_chars(
-                    f"Dub: {self.get_first_from_selects(
-                    node, ["div.tick-dub"]
-                ).text} | Eps: {self.get_first_from_selects(node, ['div.tick-eps']).text}"
-                ),
-                "type": None,
-            }
+                    "image": urllib.parse.urljoin(
+                        self.url,
+                        str(
+                            self.get_first_from_selects(
+                                node, ["div.film-poster img"]
+                            ).get("data-src")
+                        ),
+                    ),
+                    "description": remove_special_chars(
+                        self.get_first_from_selects(
+                            node, ["div.fd-infor"]
+                        ).text.replace("\n", " ")
+                    ),
+                    "duration": remove_special_chars(
+                        self.get_first_from_selects(node, ["span.fdi-duration"]).text
+                    ),
+                    "year": remove_special_chars(
+                        self.get_first_from_selects(node, ["span.fdi-year"]).text
+                    ),
+                    "detail": remove_special_chars(
+                        f"Dub: {self.get_first_from_selects(
+                        node, ["div.tick-dub"]
+                    ).text} | Eps: {self.get_first_from_selects(node, ['div.tick-eps']).text}"
+                    ),
+                    "type": None,
+                }
 
-            to_append["id"] = self.get_id_from_url(to_append["url"])
+                to_append["id"] = self.get_id_from_url(to_append["url"])
 
-            results.append(to_append)
+                results.append(to_append)
 
-        return results
+            return results
+        except:
+            return []
 
     def get_id_from_url(self, url: str):
         pattern = r".+\/(\d+)-.+"
@@ -152,172 +152,118 @@ class AnimeUltra:
             return match.group(1)
         return None
 
-    def fetch_saisons(self, anime_url: str):
+    def fetch_eps(self, anime_id: str):
+
+        anime_url = f"/engine/ajax/full-story.php?newsId={anime_id}&d={int(time.time() * 1000)}"
+
         if not anime_url:
-            return []
+            return [], {}
 
         try:
-            api = (
-                anime_url
-                if anime_url.startswith("http")
-                else urllib.parse.urljoin(self.url, anime_url)
-            )
+            api = urllib.parse.urljoin(self.url, anime_url)
 
             response = requests.get(api, headers=self.headers, timeout=10)
 
             if not response:
                 print("Error: Invalid response")
-                return []
+                return [], {}
 
             if response.status_code != 200:
                 print(f"Error: {response.status_code}")
-                return []
+                return [], {}
 
-            soup = self.souper.parse(response.text)
-            if not soup:
-                return []
+            json_response = response.json()
 
-            eps = self.extract_saisons(soup, anime_url)
+            if "html" not in json_response:
+                return [], {}
 
-            if not eps:
-                return []
+            results = self.extract_eps(json_response["html"])
+            sources = self.extract_sources(json_response["html"])
 
-            return eps
-
-        except Exception as e:
-            print(f"Error: {e}")
-            input("...stop...")
-            return []
-
-    def extract_saisons(self, soup: BeautifulSoup, anime_url: str):
-
-        try:
-
-            results = []
-
-            # Trouver tous les h2 dans le document
-            for h2 in soup.find_all("h2"):
-                h2_text = h2.get_text(strip=True)
-
-                if "Anime" in h2_text:
-                    next_div = h2.find_next("div", class_="flex")
-                    if next_div:
-                        script = next_div.find("script")  # type: ignore
-                        if script:
-                            script_content = script.string  # type: ignore
-                            pattern = r'panneauAnime\("([^"]+)",\s*"([^"]+)"\)'
-                            matches = re.findall(pattern, script_content)  # type: ignore
-                            for title, link in matches:
-                                if title == "nom":
-                                    continue
-                                results.append(
-                                    {
-                                        "title": title,
-                                        "link": join_path([anime_url, link]),
-                                        "type": "kai" if "Kai" in h2_text else "anime",
-                                    }
-                                )
-
-                elif "Manga" in h2_text:
-                    next_div = h2.find_next("div", class_="flex")
-                    if next_div:
-                        script = next_div.find("script")  # type: ignore
-                        if script:
-                            script_content = script.string  # type: ignore
-                            pattern = r'panneauScan\("([^"]+)",\s*"([^"]+)"\)'
-                            matches = re.findall(pattern, script_content)  # type: ignore
-                            for title, link in matches:
-                                if title == "nom":
-                                    continue
-                                results.append(
-                                    {"title": title, "link": link, "type": "manga"}
-                                )
-
-            return results
-        except Exception as e:
-            return []
-
-    def fetch_eps(self, season_url: str):
-
-        if not season_url:
-            return []
-
-        try:
-            api = urllib.parse.urljoin(self.url, season_url)
-
-            response = requests.get(api, headers=self.headers, timeout=10)
-
-            if not response:
-                print("Error: Invalid response")
-                return []
-
-            if response.status_code != 200:
-                print(f"Error: {response.status_code}")
-                return []
-
-            results = self.extract_eps(response.text)
-
-            return results
+            return results, sources
 
         except Exception as e:
             print(f"Error: {e}")
             input("stop...")
-            return []
+            return [], {}
 
     def extract_eps(self, content: str):
-        pattern = r"var\s+(eps\w+)\s*=\s*\[([\s\S]*?)\];"
 
         try:
-            matches = re.findall(pattern, content)
+            soup = self.souper.parse(content)
+            if not soup:
+                return []
 
-            # Créer un dictionnaire pour stocker les listes par source
-            sources_dict = {}
+            res_nodes = soup.select("div.ss-list a")
 
-            for var_name, array_content in matches:
+            if not res_nodes:
+                return []
 
-                # Nettoyer le contenu du tableau
-                array_content = array_content.strip()
-                if array_content.endswith(","):
-                    array_content = array_content[:-1]
+            results = []
 
-                # Convertir en liste Python
-                try:
-                    json_array = extract_links(array_content)
-                    sources_dict[var_name] = json_array
+            for i, node in enumerate(res_nodes):
 
-                except json.JSONDecodeError:
+                if not node:
                     continue
 
-            # Déterminer le nombre d'épisodes (max parmi toutes les sources)
-            max_episodes = max(len(urls) for urls in sources_dict.values())
+                to_append = {
+                    "title": self.get_first_from_selects(node, ["div.ep-name"]).text,
+                    "full_title": self.get_first_from_selects(
+                        node, ["div.ep-name"]
+                    ).get("title"),
+                    "url": urllib.parse.urljoin(
+                        self.url,
+                        node.get("href"),  # type: ignore
+                    ),
+                    "season_name": node.get("title"),
+                    "order": node.get("data-number")
+                    or self.get_first_from_selects(node, ["div.ssli-order"]).text,
+                    "id": node.get("data-id"),
+                }
 
-            # Construire la liste finale
-            result = []
-            for i in range(max_episodes):
-                episode_sources = []
-                # Parcourir les sources dans l'ordre (eps1, eps2, eps3, eps4)
-                for j in sources_dict.keys():
-                    source_name = j
-                    if source_name in sources_dict and i < len(
-                        sources_dict[source_name]
-                    ):
-                        episode_sources.append(sources_dict[source_name][i])
-                result.append({"episode": i + 1, "sources": episode_sources})
-            return result
-        except Exception as e:
-            print(f"Error: {e}")
-            input("...stop...")
+                results.append(to_append)
+
+            return results
+        except:
             return []
 
-    def fetch_servers(self, ep_id=""):
+    def extract_sources(self, content: str):
 
-        if not ep_id:
+        try:
+            soup = self.souper.parse(content)
+            if not soup:
+                return {}
+
+            res_nodes = soup.select("div.player_box")
+
+            if not res_nodes:
+                return {}
+
+            results = dict()
+
+            for i, node in enumerate(res_nodes):
+
+                if not node:
+                    continue
+
+                to_append = {
+                    "id": node.get("id"),
+                    "content": node.text,
+                }
+
+                results[to_append["id"]] = to_append["content"]
+
+            return results
+        except:
+            return {}
+
+    def fetch_servers(self, url=""):
+
+        if not url:
             return []
 
         try:
-            api = urllib.parse.urljoin(
-                self.url, "/ajax/v2/episode/servers?episodeId=" + ep_id
-            )
+            api = url
 
             response = requests.get(api, headers=self.headers, timeout=10)
 
@@ -329,13 +275,7 @@ class AnimeUltra:
                 print(f"Error: {response.status_code}")
                 return []
 
-            json_response = response.json()
-
-            if not json_response or "html" not in json_response:
-                print("Error: False positive response")
-                return []
-
-            html = response.json()["html"]
+            html = response.text
 
             soup = self.souper.parse(html)
 
@@ -354,20 +294,21 @@ class AnimeUltra:
 
     def extract_servers(self, soup: BeautifulSoup):
         try:
-            servers_nodes = soup.select("div.ps__-list div")
+            servers_nodes = soup.select("div.ps__-list div.item")
             results = []
 
             for server in servers_nodes:
+
                 _to_return = {
                     "title": self.get_first_from_selects(server, ["a.btn"]).text,
+                    "server": server.get("data-class") or "",
                     "type": server.get("data-type") or "",
                     "id": server.get("data-id"),
                     "server-id": server.get("data-server-id"),
                 }
-
-                _to_return["data"] = self.fetch_server_data(_to_return["id"])
-
+                _to_return["source-id"] = f"content_player_{_to_return['server-id']}"
                 results.append(_to_return)
+
             return results
         except:
             return []
@@ -437,3 +378,88 @@ class AnimeUltra:
             return lang_vers
         except:
             return [season]
+
+    def generate_embed_url(self, classserver: str, linktop: str) -> str:
+        classserver = classserver.strip().lower()
+
+        if classserver in ["mystream", "mystream nower"]:
+            return f"https://embed.mystream.to/{linktop}"
+        elif classserver in ["streamtape", "streamtape nower"]:
+            return f"/dist/streamtap.php?id={linktop}"
+            # return f"/dist/streamtap.php?id={linktop}"
+        elif classserver in ["uqload", "uqload nower"]:
+            return f"https://uqload.com/embed-{linktop}.html"
+        elif classserver in ["cdnt2", "cdnt2 nower"]:
+            return f"https://mb.toonanime.xyz/dist/mpia.html?id={linktop}"
+        elif classserver in ["vip", "vidcdn", "vid", "vip nower"]:
+            return linktop
+        elif classserver in ["vidfast", "vidfast nower"]:
+            return f"https://vidfast.co/embed-{linktop}.html"
+        elif classserver in ["verystream", "verystream nower"]:
+            return f"https://verystream.com/e/{linktop}"
+        elif classserver in ["rapids", "rapids nower"]:
+            return f"https://rapidstream.co/embed-{linktop}.html"
+        elif classserver in ["cloudvideo", "cloudvideo nower"]:
+            return f"https://cloudvideo.tv/embed-{linktop}.html"
+        elif classserver in ["mytv", "mytv nower"]:
+            return f"https://www.myvi.tv/embed/{linktop}"
+        elif classserver in ["myvi", "myvi nower"]:
+            return f"https://myvi.ru/player/embed/html/{linktop}"
+        elif classserver in ["uptostream", "uptostream nower"]:
+            return f"https://uptostream.com/iframe/{linktop}"
+        elif classserver in ["gtv", "gtv nower"]:
+            return f"https://iframedream.com/embed/{linktop}.html"
+        elif classserver in ["fembed", "fembed nower"]:
+            return f"https://toopl.xyz/v/{linktop}.html"
+        elif classserver in ["hydrax", "hydrax nower"]:
+            return f"https://hydrax.net/watch?v={linktop}"
+        elif classserver in ["gou", "gou nower"]:
+            return f"/dist/indexgo.php?id={linktop}"
+        elif classserver in ["cdnt", "cdnt nower"]:
+            return f"https://lb.toonanime.xyz/dist/aultra.html?id={linktop}"
+        elif classserver in ["rapidvideo", "rapidvideo nower"]:
+            return f"https://www.rapidvideo.com/e/{linktop}"
+        elif classserver in ["namba", "namba nower"]:
+            return linktop  # Cas spécial avec Flash, retourne le lien tel quel
+        elif classserver in ["kaztube", "kaztube nower"]:
+            return f"https://kaztube.kz/video/embed/{linktop}"
+        elif classserver in ["tune", "tune nower"]:
+            return f"https://tune.pk/player/embed_player.php?vid={linktop}"
+        elif classserver in ["sibnet", "sibnet nower"]:
+            # return f"/dist/indexs.php?id={linktop}"
+            return f"https://video.sibnet.ru/shell.php?videoid={linktop}"
+        elif classserver in ["netu", "netu nower"]:
+            return f"https://waaw.tv/watch_video.php?v={linktop}"
+        elif classserver in ["rutube", "rutube nower"]:
+            return f"https://rutube.ru/play/embed/{linktop}"
+        elif classserver in ["dailymotion", "dailymotion nower"]:
+            return (
+                f"https://dailymotion.com/embed/video/{linktop}?logo=0&amp;info=0&amp;"
+            )
+        elif classserver in ["openload", "openload nower"]:
+            return f"https://openload.co/embed/{linktop}"
+        elif classserver in ["yandex", "yandex nower"]:
+            return linktop  # Cas spécial avec Flash, retourne le lien tel quel
+        elif classserver in ["ok", "ok nower"]:
+            return f"https://www.ok.ru/videoembed/{linktop}"
+        elif classserver in [
+            "vidspot",
+            "vidspot nower",
+            "vid",
+            "vid nower",
+            "cloudy",
+            "cloudy nower",
+            "google",
+            "google nower",
+            "youtube",
+            "youtube nower",
+            "moevideo",
+            "moevideo nower",
+        ]:
+            return linktop
+        elif classserver in ["mail", "mail nower"]:
+            return f"https://videoapi.my.mail.ru/videos/embed/mail/{linktop}"
+        elif classserver in ["mail2", "mail2 nower"]:
+            return f"https://my.mail.ru/video/embed/{linktop}"
+        else:
+            return linktop  # Par défaut, retourne le lien tel quel

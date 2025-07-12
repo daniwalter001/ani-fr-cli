@@ -1,6 +1,7 @@
 import os
 import re
 import html
+from urllib.parse import unquote
 
 
 def clear():
@@ -54,14 +55,13 @@ def play_with_iina(url: str = "", referer: str = ""):
     try:
         kill_all_process("iina")
         os.system(f"iina --referer='{referer}' '{url}'")
-        input("Press Enter to continue...")
 
     except Exception as e:
         print(e)
         input("Press Enter to continue...")
 
 
-def play_with_mpv(url: str = "", referrer: str = ""):
+def play_with_mpv(url: str = "", referer: str = ""):
 
     if not url:
         return
@@ -70,7 +70,7 @@ def play_with_mpv(url: str = "", referrer: str = ""):
         "mpv",
         "--hwdec=auto-safe",
         "--vo=gpu",
-        f"--referrer='{referrer}'",
+        f"--referrer='{referer}'",
         "--no-border",
         f"'{url}'",
         "--profile=fast",
@@ -80,11 +80,10 @@ def play_with_mpv(url: str = "", referrer: str = ""):
     try:
         kill_all_process("mpv")
         os.system(" ".join(mpv_command))
-        input("Press Enter to continue...")
 
     except Exception as e:
         print(f"MPV failed: {e}")
-        input("Press Enter to continue...")
+        input("Error: Press Enter to continue...")
 
 
 def kill_all_process(process_name=""):
@@ -104,12 +103,21 @@ def remove_special_chars(text: str):
         decoded_text = re.sub(
             r"\\u([0-9a-fA-F]{4})", lambda m: chr(int(m.group(1), 16)), text
         )
-
+        
         decoded_text = decoded_text.replace("\u00a0", " ")
-
+        
         decoded_text = html.unescape(decoded_text)
-        decoded_text = re.sub(r"\s+", " ", text)
-
+        
+        decoded_text = re.sub(r"\s+", " ", decoded_text)
+        
         return decoded_text
     except Exception as e:
         return text
+
+
+def decode_url_unicode(url):
+    # Remplace les \u0026 par %u0026 pour urllib.parse.unquote
+    corrected_url = re.sub(r'\\u([0-9a-fA-F]{4})', r'%u\1', url)
+    # Décodage des séquences Unicode (%uXXXX)
+    decoded_url = unquote(corrected_url)
+    return decoded_url
