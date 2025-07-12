@@ -1,5 +1,6 @@
 from providers.anime_sama import AnimeSama
-from util.functions import clear, extract, play_with_iina
+from util.functions import clear, play_with_iina
+from util.services import extract
 from util.fzf_handler import fuzzy_finder
 
 
