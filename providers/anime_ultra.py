@@ -381,67 +381,70 @@ class AnimeUltra:
 
     def generate_embed_url(self, classserver: str, linktop: str) -> str:
         classserver = classserver.strip().lower()
+        
+        
+        to_return = ""
 
         if classserver in ["mystream", "mystream nower"]:
-            return f"https://embed.mystream.to/{linktop}"
+            to_return = f"https://embed.mystream.to/{linktop}"
         elif classserver in ["streamtape", "streamtape nower"]:
-            return f"/dist/streamtap.php?id={linktop}"
-            # return f"/dist/streamtap.php?id={linktop}"
+            to_return = f"/dist/streamtap.php?id={linktop}"
+            # to_return = f"/dist/streamtap.php?id={linktop}"
         elif classserver in ["uqload", "uqload nower"]:
-            return f"https://uqload.com/embed-{linktop}.html"
+            to_return = f"https://uqload.com/embed-{linktop}.html"
         elif classserver in ["cdnt2", "cdnt2 nower"]:
-            return f"https://mb.toonanime.xyz/dist/mpia.html?id={linktop}"
+            to_return = f"https://mb.toonanime.xyz/dist/mpia.html?id={linktop}"
         elif classserver in ["vip", "vidcdn", "vid", "vip nower"]:
-            return linktop
+            to_return = linktop
         elif classserver in ["vidfast", "vidfast nower"]:
-            return f"https://vidfast.co/embed-{linktop}.html"
+            to_return = f"https://vidfast.co/embed-{linktop}.html"
         elif classserver in ["verystream", "verystream nower"]:
-            return f"https://verystream.com/e/{linktop}"
+            to_return = f"https://verystream.com/e/{linktop}"
         elif classserver in ["rapids", "rapids nower"]:
-            return f"https://rapidstream.co/embed-{linktop}.html"
+            to_return = f"https://rapidstream.co/embed-{linktop}.html"
         elif classserver in ["cloudvideo", "cloudvideo nower"]:
-            return f"https://cloudvideo.tv/embed-{linktop}.html"
+            to_return = f"https://cloudvideo.tv/embed-{linktop}.html"
         elif classserver in ["mytv", "mytv nower"]:
-            return f"https://www.myvi.tv/embed/{linktop}"
+            to_return = f"https://www.myvi.tv/embed/{linktop}"
         elif classserver in ["myvi", "myvi nower"]:
-            return f"https://myvi.ru/player/embed/html/{linktop}"
+            to_return = f"https://myvi.ru/player/embed/html/{linktop}"
         elif classserver in ["uptostream", "uptostream nower"]:
-            return f"https://uptostream.com/iframe/{linktop}"
+            to_return = f"https://uptostream.com/iframe/{linktop}"
         elif classserver in ["gtv", "gtv nower"]:
-            return f"https://iframedream.com/embed/{linktop}.html"
+            to_return = f"https://iframedream.com/embed/{linktop}.html"
         elif classserver in ["fembed", "fembed nower"]:
-            return f"https://toopl.xyz/v/{linktop}.html"
+            to_return = f"https://toopl.xyz/v/{linktop}.html"
         elif classserver in ["hydrax", "hydrax nower"]:
-            return f"https://hydrax.net/watch?v={linktop}"
+            to_return = f"https://hydrax.net/watch?v={linktop}"
         elif classserver in ["gou", "gou nower"]:
-            return f"/dist/indexgo.php?id={linktop}"
+            to_return = f"/dist/indexgo.php?id={linktop}"
         elif classserver in ["cdnt", "cdnt nower"]:
-            return f"https://lb.toonanime.xyz/dist/aultra.html?id={linktop}"
+            to_return = f"https://lb.toonanime.xyz/dist/aultra.html?id={linktop}"
         elif classserver in ["rapidvideo", "rapidvideo nower"]:
-            return f"https://www.rapidvideo.com/e/{linktop}"
+            to_return = f"https://www.rapidvideo.com/e/{linktop}"
         elif classserver in ["namba", "namba nower"]:
-            return linktop  # Cas spécial avec Flash, retourne le lien tel quel
+            to_return = linktop  # Cas spécial avec Flash, retourne le lien tel quel
         elif classserver in ["kaztube", "kaztube nower"]:
-            return f"https://kaztube.kz/video/embed/{linktop}"
+            to_return = f"https://kaztube.kz/video/embed/{linktop}"
         elif classserver in ["tune", "tune nower"]:
-            return f"https://tune.pk/player/embed_player.php?vid={linktop}"
+            to_return = f"https://tune.pk/player/embed_player.php?vid={linktop}"
         elif classserver in ["sibnet", "sibnet nower"]:
-            # return f"/dist/indexs.php?id={linktop}"
-            return f"https://video.sibnet.ru/shell.php?videoid={linktop}"
+            # to_return = f"/dist/indexs.php?id={linktop}"
+            to_return = f"https://video.sibnet.ru/shell.php?videoid={linktop}"
         elif classserver in ["netu", "netu nower"]:
-            return f"https://waaw.tv/watch_video.php?v={linktop}"
+            to_return = f"https://waaw.tv/watch_video.php?v={linktop}"
         elif classserver in ["rutube", "rutube nower"]:
-            return f"https://rutube.ru/play/embed/{linktop}"
+            to_return = f"https://rutube.ru/play/embed/{linktop}"
         elif classserver in ["dailymotion", "dailymotion nower"]:
-            return (
+            to_return = (
                 f"https://dailymotion.com/embed/video/{linktop}?logo=0&amp;info=0&amp;"
             )
         elif classserver in ["openload", "openload nower"]:
-            return f"https://openload.co/embed/{linktop}"
+            to_return = f"https://openload.co/embed/{linktop}"
         elif classserver in ["yandex", "yandex nower"]:
-            return linktop  # Cas spécial avec Flash, retourne le lien tel quel
+            to_return = linktop  # Cas spécial avec Flash, retourne le lien tel quel
         elif classserver in ["ok", "ok nower"]:
-            return f"https://www.ok.ru/videoembed/{linktop}"
+            to_return = f"https://www.ok.ru/videoembed/{linktop}"
         elif classserver in [
             "vidspot",
             "vidspot nower",
@@ -456,10 +459,13 @@ class AnimeUltra:
             "moevideo",
             "moevideo nower",
         ]:
-            return linktop
+            to_return = linktop
         elif classserver in ["mail", "mail nower"]:
-            return f"https://videoapi.my.mail.ru/videos/embed/mail/{linktop}"
+            to_return = f"https://videoapi.my.mail.ru/videos/embed/mail/{linktop}"
         elif classserver in ["mail2", "mail2 nower"]:
-            return f"https://my.mail.ru/video/embed/{linktop}"
+            to_return = f"https://my.mail.ru/video/embed/{linktop}"
         else:
-            return linktop  # Par défaut, retourne le lien tel quel
+            to_return = linktop  # Par défaut, retourne le lien tel quel
+
+        to_return = remove_special_chars(to_return)
+        return to_return
