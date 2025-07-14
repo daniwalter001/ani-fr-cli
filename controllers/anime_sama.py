@@ -215,6 +215,7 @@ def handle_eps(ep: dict, referer: str, current_episode_order: int, eps: list):
 
 
 def handle_sources(source: str, referer: str):
+
     try:
 
         if not source:
@@ -235,7 +236,7 @@ def handle_sources(source: str, referer: str):
 
         title = f"{anime_object['title']} - {anime_object['season']['title']} - {anime_object['episode']['episode']}"
 
-        print(f"Playing {anime_object}")
+        #
         play_with_mpv(
             str(real_link["url"]), str(real_link["referer"] or referer), title=title
         )

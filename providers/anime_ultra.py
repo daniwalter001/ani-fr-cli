@@ -410,7 +410,7 @@ class AnimeUltra:
         elif classserver in ["cdnt2", "cdnt2 nower"]:
             to_return = f"https://mb.toonanime.xyz/dist/mpia.html?id={linktop}"
         elif classserver in ["vip", "vidcdn", "vid", "vip nower"]:
-            to_return = linktop
+            to_return = handle_vidcdn(linktop)
         elif classserver in ["vidfast", "vidfast nower"]:
             to_return = f"https://vidfast.co/embed-{linktop}.html"
         elif classserver in ["verystream", "verystream nower"]:
@@ -484,3 +484,24 @@ class AnimeUltra:
 
         to_return = remove_special_chars(to_return)
         return to_return
+
+
+def handle_vidcdn(url: str):
+    id = get_id_or_real_id(url)
+    if not id:
+        return url
+
+    if "/embeds" in url:
+        return f"https://video.sibnet.ru/shell.php?videoid={id}"
+    elif "/embedm" in url:
+        return f"https://www.myvi.tv/embed/{id}"
+    else:
+        return url
+
+
+def get_id_or_real_id(url: str):
+    pattern = r"\w+(?:\?|\&)(?:id|realid|real_id)=(\w+)\&{0,1}"
+    match = re.search(pattern, url)
+    if match:
+        return match.group(1)
+    return None

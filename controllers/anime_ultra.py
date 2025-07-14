@@ -193,6 +193,7 @@ def handle_ep(ep_selected: dict, sources: dict, current_ep_order: int, eps: list
 
 
 def handle_source(server: dict, sources: dict, referer: str):
+
     try:
         server["content"] = animeu.generate_embed_url(
             server["server"],
