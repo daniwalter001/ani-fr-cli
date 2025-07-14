@@ -77,9 +77,9 @@ class Vidmoly:
                 # Return the first match (first group if it's a tuple)
                 match = matches[0]
                 return (
-                    {"url": match[0], "referer": url}
+                    {"url": match[0], "referer": "https://vidmoly.to"}
                     if isinstance(match, tuple)
-                    else {"url": match, "referer": url}
+                    else {"url": match, "referer": "https://vidmoly.to"}
                 )
 
         return None

@@ -136,3 +136,11 @@ def decode_url_unicode(url):
     # Décodage des séquences Unicode (%uXXXX)
     decoded_url = unquote(corrected_url)
     return decoded_url
+
+
+def remove_duplicates(list: list, key="title"):
+    unique_list = []
+    for item in list:
+        if item[key] not in [x[key] for x in unique_list]:
+            unique_list.append(item)
+    return unique_list

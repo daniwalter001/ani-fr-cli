@@ -5,7 +5,7 @@ import jsbeautifier
 
 class Smoothpre:
 
-    keywords = ["smoothpre", "Smoothpre"]
+    keywords = ["smoothpre", "Smoothpre", "movearnpre"]
     beautifier = jsbeautifier.Beautifier()
     
     headers = {

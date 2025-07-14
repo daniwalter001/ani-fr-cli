@@ -5,7 +5,13 @@ from parser.beautifulSoup import BeautifulScraper
 import re
 import time
 
-from util.functions import check_anime, extract_links, join_path, remove_special_chars
+from util.functions import (
+    check_anime,
+    extract_links,
+    join_path,
+    remove_special_chars,
+    remove_duplicates,
+)
 
 
 class AnimeUltra:
@@ -62,31 +68,39 @@ class AnimeUltra:
         return search_results
 
     def fetch(self, query="", type="TV", extra_titles: list = []):
+        try:
+            if not query:
+                return None
 
-        if not query:
-            return None
+            search_results = self.search(query, type)
 
-        search_results = self.search(query, type)
-
-        i = 0
-        if len(search_results) == 0:
-            while not search_results and i < len(extra_titles):
+            i = 0
+            # if len(search_results) == 0:
+            # while not search_results and i < len(extra_titles):
+            while i < len(extra_titles):
                 print(extra_titles[i])
-                search_results = self.search(extra_titles[i], type)
+                res_search = self.search(extra_titles[i], type)
+                if res_search and len(res_search) > 0:
+                    search_results.extend(res_search)
                 i += 1
-                if search_results:
-                    break
+                # if search_results:
+                #     break
 
-        # queries = [query]
+            # queries = [query]
 
-        # first_try = check_anime(queries, search_results)
+            # first_try = check_anime(queries, search_results)
 
-        # if not first_try:
-        #     return search_results[0] if search_results else None  # type: ignore
+            # if not first_try:
+            #     return search_results[0] if search_results else None  # type: ignore
 
-        # return first_try
+            # return first_try
 
-        return search_results
+            return remove_duplicates(search_results)
+
+        except Exception as e:
+            print(e)
+            input("Press Enter to continue...")
+            return None
 
     def extract_search_results(self, soup: BeautifulSoup):
         try:
@@ -154,7 +168,9 @@ class AnimeUltra:
 
     def fetch_eps(self, anime_id: str):
 
-        anime_url = f"/engine/ajax/full-story.php?newsId={anime_id}&d={int(time.time() * 1000)}"
+        anime_url = (
+            f"/engine/ajax/full-story.php?newsId={anime_id}&d={int(time.time() * 1000)}"
+        )
 
         if not anime_url:
             return [], {}
@@ -381,8 +397,7 @@ class AnimeUltra:
 
     def generate_embed_url(self, classserver: str, linktop: str) -> str:
         classserver = classserver.strip().lower()
-        
-        
+
         to_return = ""
 
         if classserver in ["mystream", "mystream nower"]:

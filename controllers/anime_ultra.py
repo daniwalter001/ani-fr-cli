@@ -5,6 +5,8 @@ from util.fzf_handler import fuzzy_finder
 
 animeu = AnimeUltra()
 
+anime_object = {}
+
 
 def handle(anime_selected: dict):
     try:
@@ -31,6 +33,7 @@ def handle(anime_selected: dict):
             )
 
             anime_fetched = anime_search_results[choice]
+            anime_object["title"] = anime_fetched["title"]
 
             handle_version(anime_fetched)
 
@@ -68,6 +71,8 @@ def handle_version(anime_fetched: dict):
                     break
 
                 ep_selected = eps[choice]
+
+                anime_object["episode"] = ep_selected
 
                 handle_ep(ep_selected, sources, choice, eps)
 
@@ -108,6 +113,7 @@ def handle_ep(ep_selected: dict, sources: dict, current_ep_order: int, eps: list
         while True:
 
             if auto_play:
+                anime_object["servers"] = servers
                 handle_source(servers[0], sources, ep_selected["url"])
                 auto_play = False
 
@@ -127,6 +133,7 @@ def handle_ep(ep_selected: dict, sources: dict, current_ep_order: int, eps: list
                 action = actions[choice]
 
                 if action == "play":
+                    anime_object["servers"] = servers
                     handle_source(servers[0], sources, ep_selected["url"])
 
                 elif action == "next":
@@ -135,8 +142,10 @@ def handle_ep(ep_selected: dict, sources: dict, current_ep_order: int, eps: list
                     _current_ep_order += 1
                     ep_selected = eps[_current_ep_order]
                     servers = animeu.fetch_servers(ep_selected["url"])
+                    anime_object["servers"] = servers
+                    anime_object["episode"] = ep_selected
                     handle_source(servers[0], sources, ep_selected["url"])
-                    pass
+                    continue
 
                 elif action == "change episode":
                     clear()
@@ -157,8 +166,11 @@ def handle_ep(ep_selected: dict, sources: dict, current_ep_order: int, eps: list
                     if not server:
                         clear()
                         break
+                    anime_object["server"] = server
 
                     handle_source(server, sources, ep_selected["url"])
+
+                    continue
 
                 elif action == "quit":
                     clear()
@@ -193,9 +205,12 @@ def handle_source(server: dict, sources: dict, referer: str):
             clear()
             return
 
+        title = f"{anime_object['title']} - {anime_object['episode']['full_title']}"
+
         play_with_mpv(
             url=url_response["url"],
-            referer=url_response["referer"],
+            referer=str(url_response["referer"] or referer),
+            title=title,
         )
 
     except:

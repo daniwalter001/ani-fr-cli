@@ -236,7 +236,9 @@ def handle_sources(source: str, referer: str):
         title = f"{anime_object['title']} - {anime_object['season']['title']} - {anime_object['episode']['episode']}"
 
         print(f"Playing {anime_object}")
-        play_with_mpv(str(real_link["url"]), str(referer), title=title)
+        play_with_mpv(
+            str(real_link["url"]), str(real_link["referer"] or referer), title=title
+        )
 
         input("\nPress Enter to continue...")
 

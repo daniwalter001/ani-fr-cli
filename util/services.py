@@ -6,7 +6,6 @@ from extractors.vidmoly import Vidmoly
 from extractors.vidcn import VidCdn
 
 
-
 def extract(url: str, referer: str = ""):
     if not url:
         return None
@@ -20,11 +19,10 @@ def extract(url: str, referer: str = ""):
     elif Sibnet.match(url):
         return Sibnet.extract(url, referer)
     elif Vidmoly.match(url):
-        return Vidmoly.extract(url, referer=referer)
+        return Vidmoly.extract(url, referer="https://vidmoly.to")
     elif Smoothpre.match(url):
         return Smoothpre.extract(url, referer=referer)
     elif VidCdn.match(url):
         return VidCdn.extract(url, referer=referer)
     else:
         return {"url": url, "referer": referer}
-
