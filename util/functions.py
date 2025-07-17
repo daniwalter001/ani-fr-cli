@@ -74,7 +74,7 @@ def play_with_mpv(url: str = "", referer: str = "", title=""):
         "--vo=gpu",
         "--no-border",
         f"'{remove_special_chars(url)}'",
-        "--profile=fast",
+        # "--profile=fast",
         "--hwdec=auto",
     ]
     if referer:

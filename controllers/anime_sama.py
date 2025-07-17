@@ -29,7 +29,7 @@ def handle(anime_selected: dict):
             clear()
             return
 
-        print(f"Title: {animes["title"]}, Type: {animes["type"]}")
+        print(f"Title: {animes['title']}, Type: {animes['type']}")
 
         anime_object["title"] = animes["title"]
         anime_object["type"] = animes["type"]
@@ -225,7 +225,7 @@ def handle_sources(source: str, referer: str):
         real_link = extract(source, referer=referer)
 
         print(
-            f"Real URL: { "found" if real_link and "url" in real_link else "not found"} "
+            f'Real URL: { "found" if real_link and "url" in real_link else "not found"} '
         )
 
         if not real_link or "url" not in real_link or "referer" not in real_link:

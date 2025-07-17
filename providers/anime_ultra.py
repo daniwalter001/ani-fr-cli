@@ -144,9 +144,9 @@ class AnimeUltra:
                         self.get_first_from_selects(node, ["span.fdi-year"]).text
                     ),
                     "detail": remove_special_chars(
-                        f"Dub: {self.get_first_from_selects(
-                        node, ["div.tick-dub"]
-                    ).text} | Eps: {self.get_first_from_selects(node, ['div.tick-eps']).text}"
+                        "Dub:"
+                        + self.get_first_from_selects(node, ["div.tick-dub"]).text
+                        + " | Eps: {self.get_first_from_selects(node, ['div.tick-eps']).text}"
                     ),
                     "type": None,
                 }

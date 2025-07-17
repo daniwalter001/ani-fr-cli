@@ -155,7 +155,7 @@ def handle_ep(ep_selected: dict, sources: dict, current_ep_order: int, eps: list
                     clear()
                     choice = fuzzy_finder(
                         [
-                            f"{x["server"]}. {x["title"]} - {sources[x["source-id"]]}"
+                            f'{x["server"]}. {x["title"]} - {sources[x["source-id"]]}'
                             for x in servers
                         ],
                         prompt="Select server:",
