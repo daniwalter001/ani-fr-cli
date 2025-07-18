@@ -29,7 +29,11 @@ def handle(anime_selected: dict):
             clear()
             return
 
+<<<<<<< HEAD
         print(f"Title: {animes['title']}, Type: {animes['type']}")
+=======
+        print(f"Title: {animes["title"]}")
+>>>>>>> 3882377 (%%%%)
 
         anime_object["title"] = animes["title"]
         anime_object["type"] = animes["type"]
@@ -140,11 +144,6 @@ def handle_eps(ep: dict, referer: str, current_episode_order: int, eps: list):
             return
 
         anime_object["episode"] = eps[_current_episode_order]
-
-        # print(f"_current_episode_order, {_current_episode_order}")
-        # print(f"eppp, {eps[_current_episode_order]}")
-
-        # input("Press Enter to continue...")
 
         while True:
             try:

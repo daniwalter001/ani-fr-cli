@@ -69,6 +69,7 @@ class AnimeUltra:
 
     def fetch(self, query="", type="TV", extra_titles: list = []):
         try:
+            extra_titles = list(set(extra_titles))
             if not query:
                 return None
 
@@ -491,7 +492,9 @@ def handle_vidcdn(url: str):
     if not id:
         return url
 
-    if "/embeds" in url:
+    if "/embedsen" in url:
+        return f"https://sendvid.com/embed/{id}"
+    elif "/embeds" in url:
         return f"https://video.sibnet.ru/shell.php?videoid={id}"
     elif "/embedm" in url:
         return f"https://www.myvi.tv/embed/{id}"

@@ -35,6 +35,8 @@ def handle(anime_selected: dict):
             anime_fetched = anime_search_results[choice]
             anime_object["title"] = anime_fetched["title"]
 
+            print(f"Title: {anime_fetched['title']}")
+
             handle_version(anime_fetched)
 
     except KeyboardInterrupt as e:
@@ -205,6 +207,10 @@ def handle_source(server: dict, sources: dict, referer: str):
         if not url_response or "url" not in url_response:
             clear()
             return
+
+        print(
+            f"Real URL: { "found" if url_response and "url" in url_response else "not found"} "
+        )
 
         title = f"{anime_object['title']} - {anime_object['episode']['full_title']}"
 

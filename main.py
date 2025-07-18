@@ -23,9 +23,9 @@ while True:
 
     try:
 
-        choice = fuzzy_finder(["continue", "quit"], prompt="WDYW?")
+        choice = fuzzy_finder(["search", "quit", "trending"], prompt="WDYW?")
 
-        if choice == 1:
+        if choice != 0:
             clear()
             break
 
@@ -89,7 +89,6 @@ while True:
                 clear()
                 continue
 
-    ##vostfree
     except KeyboardInterrupt as e:
         clear()
         continue
