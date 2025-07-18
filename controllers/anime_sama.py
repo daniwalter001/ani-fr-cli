@@ -29,11 +29,7 @@ def handle(anime_selected: dict):
             clear()
             return
 
-<<<<<<< HEAD
-        print(f"Title: {animes['title']}, Type: {animes['type']}")
-=======
-        print(f"Title: {animes["title"]}")
->>>>>>> 3882377 (%%%%)
+        print(f"Title: {animes['title']}")
 
         anime_object["title"] = animes["title"]
         anime_object["type"] = animes["type"]
